@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Designer UI</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #1a1d26;
+    --bg-secondary: #20232f;
+    --bg-panel: #252836;
+    --bg-card: #2d3144;
+    --bg-hover: #333650;
+    --accent-blue: #5b8dee;
+    --accent-blue-light: #7aa3f5;
+    --text-primary: #e8eaf0;
+    --text-secondary: #8b90a7;
+    --text-muted: #5a5f75;
+    --border: #2e3245;
+    --border-light: #373d56;
+    --quote-border: #444c6e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .app-shell {
+    width: 760px;
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .top-bar-left h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+  .top-bar-left .subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+
+  .meta-badges {
+    display: flex;
+    background: var(--bg-card);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+  }
+  .meta-badge { padding: 8px 16px; text-align: center; border-right: 1px solid var(--border-light); }
+  .meta-badge:last-child { border-right: none; }
+  .meta-badge .label { font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .meta-badge .value { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+
+  /* ── Main Layout ── */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    transition: grid-template-columns 0.35s ease;
+  }
+  .main-layout.notes-hidden {
+    grid-template-columns: 1fr 0fr;
+  }
+
+  /* ── Video Panel ── */
+  .video-panel {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    transition: border-right 0.35s;
+  }
+  .main-layout.notes-hidden .video-panel {
+    border-right: none;
+  }
+
+  /* ── Video Area ── */
+  .video-area {
+    flex: 1;
+    background: var(--bg-panel);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 196px;
+  }
+
+  .play-btn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(91,141,238,0.15);
+    border: 2px solid var(--accent-blue);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .play-btn:hover { background: rgba(91,141,238,0.28); transform: scale(1.06); }
+
+  .insert-btn {
+    position: absolute; bottom: 12px; right: 14px;
+    background: var(--accent-blue); color: #fff;
+    border: none; border-radius: 7px;
+    padding: 7px 14px; font-size: 12px; font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
+    cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .insert-btn:hover { background: var(--accent-blue-light); transform: translateY(-1px); }
+
+  /* ── Video Controls ── */
+  .video-controls {
+    background: #16192280;
+    backdrop-filter: blur(4px);
+    padding: 8px 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    border-top: 1px solid var(--border);
+    user-select: none;
+  }
+
+  /* Progress bar */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .time-display {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    min-width: 90px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    background: #3a4060;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    transition: height 0.15s;
+  }
+  .progress-track:hover { height: 6px; }
+  .progress-track:hover .progress-thumb { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  .progress-fill {
+    height: 100%;
+    width: 30%;
+    background: var(--accent-blue);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .progress-thumb {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--accent-blue);
+    position: absolute;
+    top: 50%; left: 30%;
+    transform: translate(-50%, -50%) scale(0.7);
+    box-shadow: 0 0 0 3px rgba(91,141,238,0.22);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+
+  /* Controls icon row */
+  .controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .controls-left, .controls-right { display: flex; align-items: center; gap: 3px; }
+
+  .ctrl-btn {
+    width: 30px; height: 30px;
+    border: none; background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+  }
+  .ctrl-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .ctrl-btn.active { color: var(--accent-blue); }
+
+  /* Tooltip */
+  .ctrl-btn::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 50%; transform: translateX(-50%);
+    background: #111420;
+    color: var(--text-primary);
+    font-size: 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-radius: 5px;
+    border: 1px solid var(--border-light);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 10;
+  }
+  .ctrl-btn:hover::after { opacity: 1; }
+
+  .ctrl-play {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none; background: var(--accent-blue);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .ctrl-play:hover { background: var(--accent-blue-light); transform: scale(1.08); }
+  .ctrl-play .play-icon { margin-left: 2px; }
+
+  /* ── Transcript Panel ── */
+  .transcript-panel {
+    border-top: 1px solid var(--border);
+    overflow: hidden;
+    max-height: 400px;
+    opacity: 1;
+    transition: max-height 0.35s ease, opacity 0.25s ease, border-top 0.35s;
+    display: flex;
+    flex-direction: column;
+  }
+  .transcript-panel.collapsed {
+    max-height: 0;
+    opacity: 0;
+    border-top-color: transparent;
+  }
+
+  .transcript-header {
+    flex-shrink: 0;
+    padding: 10px 18px 8px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .transcript-list {
+    overflow-y: auto;
+    max-height: 190px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+  }
+  .transcript-list::-webkit-scrollbar { width: 4px; }
+  .transcript-list::-webkit-scrollbar-track { background: transparent; }
+  .transcript-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+  .transcript-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  .transcript-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.15s;
+  }
+  .transcript-item:last-child { border-bottom: none; }
+  .transcript-item:hover { background: var(--bg-hover); }
+  .transcript-item.active { background: rgba(91,141,238,0.07); }
+
+  .ts { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--accent-blue); font-weight: 500; white-space: nowrap; padding-top: 1px; }
+  .transcript-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ── Notes Panel ── */
+  .notes-panel {
+    display: flex; flex-direction: column;
+    background: var(--bg-secondary);
+    overflow: hidden;
+    min-width: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease, min-width 0.35s ease;
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .notes-panel.collapsed {
+    opacity: 0;
+    transform: translateX(20px);
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .notes-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .notes-title { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; }
+  .autopause-badge { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .autopause-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
+
+  .notes-body { flex: 1; padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  .note-summary { font-size: 12.5px; font-weight: 600; color: var(--text-primary); line-height: 1.5; }
+
+  .note-quote {
+    background: var(--bg-card);
+    border-left: 3px solid var(--quote-border);
+    border-radius: 0 6px 6px 0;
+    padding: 11px 14px;
+    font-size: 11.5px; color: var(--text-secondary); line-height: 1.6;
+    font-style: italic; position: relative;
+  }
+  .note-quote::before {
+    content: '"'; font-size: 28px; color: var(--quote-border);
+    position: absolute; top: 4px; left: 10px;
+    line-height: 1; font-style: normal; font-family: Georgia, serif;
+  }
+  .note-quote p { padding-left: 8px; }
+
+  .note-slide {
+    background: var(--bg-panel);
+    border-radius: 8px; border: 1px dashed var(--border-light);
+    height: 110px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  }
+  .note-slide .slide-icon { font-size: 22px; opacity: 0.4; }
+  .note-slide .slide-label { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+  .note-slide .slide-time { font-size: 10px; color: var(--accent-blue); font-family: 'IBM Plex Mono', monospace; }
+
+  /* ── Bottom Bar ── */
+  .bottom-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 22px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-primary);
+  }
+  .autopause-control { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); }
+
+  .toggle-wrap { position: relative; width: 38px; height: 20px; }
+  .toggle-wrap input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--bg-card); border: 1px solid var(--border-light);
+    border-radius: 20px; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; background: var(--text-muted);
+    border-radius: 50%; top: 2px; left: 2px;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .toggle-wrap input:checked + .toggle-slider { background: rgba(91,141,238,0.25); border-color: var(--accent-blue); }
+  .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--accent-blue); }
+
+  .export-btn {
+    background: var(--bg-card); color: var(--text-primary);
+    border: 1px solid var(--border-light); border-radius: 8px;
+    padding: 10px 24px; font-size: 13px; font-weight: 500;
+    font-family: 'IBM Plex Sans', sans-serif;
+    cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+  .export-btn:hover { background: var(--bg-hover); border-color: var(--accent-blue); transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>Course Designer UI</h1>
+      <div class="subtitle">Notes exported as PDF.</div>
+    </div>
+    <div class="meta-badges">
+      <div class="meta-badge"><div class="label">Video</div><div class="value">CTA 101</div></div>
+      <div class="meta-badge"><div class="label">Duration</div><div class="value">18:45</div></div>
+      <div class="meta-badge"><div class="label">Notes</div><div class="value">3 Slides</div></div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main-layout" id="mainLayout">
+
+    <!-- LEFT: Video + Controls + Transcript -->
+    <div class="video-panel">
+
+      <div class="video-area">
+        <div class="play-btn" id="bigPlayBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21" fill="var(--accent-blue)"/></svg>
+        </div>
+        <button class="insert-btn">+ Insert Slide</button>
+      </div>
+
+      <!-- Video Controls Bar -->
+      <div class="video-controls">
+
+        <!-- Progress Row -->
+        <div class="progress-row">
+          <span class="time-display" id="timeDisplay">00:00 / 18:45</span>
+          <div class="progress-track" id="progressTrack">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-thumb" id="progressThumb"></div>
+          </div>
+        </div>
+
+        <!-- Controls Row -->
+        <div class="controls-row">
+          <div class="controls-left">
+            <!-- Play/Pause -->
+            <button class="ctrl-play" id="ctrlPlay">
+              <svg class="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+            </button>
+            <!-- Volume -->
+            <button class="ctrl-btn" data-tip="Volume">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="controls-right">
+            <!-- Transcript Toggle -->
+            <button class="ctrl-btn active" id="transcriptBtn" data-tip="Transcript">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+            </button>
+
+            <!-- Notes Toggle -->
+            <button class="ctrl-btn active" id="notesBtn" data-tip="Lecture Notes">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+              </svg>
+            </button>
+
+            <!-- Fullscreen -->
+            <button class="ctrl-btn" id="fullscreenBtn" data-tip="Fullscreen">
+              <svg id="fsIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Transcript -->
+      <div class="transcript-panel" id="transcriptPanel">
+        <div class="transcript-header">Interactive Transcript</div>
+        <div class="transcript-list" id="transcriptList">
+          <div class="transcript-item" data-time="5">
+            <span class="ts">00:05</span>
+            <span class="transcript-text">Welcome to the introduction of Cognitive Task Analysis.</span>
+          </div>
+          <div class="transcript-item" data-time="95">
+            <span class="ts">01:35</span>
+            <span class="transcript-text">Today we'll explore how experts think and make decisions in complex environments.</span>
+          </div>
+          <div class="transcript-item" data-time="192">
+            <span class="ts">03:12</span>
+            <span class="transcript-text">The goal is to make implicit knowledge explicit so it can be taught effectively.</span>
+          </div>
+          <div class="transcript-item active" data-time="252">
+            <span class="ts">04:12</span>
+            <span class="transcript-text">When we perform a cognitive task analysis, we first identify the core competencies required...</span>
+          </div>
+          <div class="transcript-item" data-time="360">
+            <span class="ts">06:00</span>
+            <span class="transcript-text">Notice how each sub-task maps to a distinct mental model the expert relies on.</span>
+          </div>
+          <div class="transcript-item" data-time="468">
+            <span class="ts">07:48</span>
+            <span class="transcript-text">We use structured interviews and observation to capture these decision points.</span>
+          </div>
+          <div class="transcript-item" data-time="525">
+            <span class="ts">08:45</span>
+            <span class="transcript-text">This model allows us to decompose expert performance into teachable components.</span>
+          </div>
+          <div class="transcript-item" data-time="634">
+            <span class="ts">10:34</span>
+            <span class="transcript-text">The critical decision method is one of the most widely used CTA techniques.</span>
+          </div>
+          <div class="transcript-item" data-time="720">
+            <span class="ts">12:00</span>
+            <span class="transcript-text">Here we see how a novice and an expert respond differently to the same scenario.</span>
+          </div>
+          <div class="transcript-item" data-time="847">
+            <span class="ts">14:07</span>
+            <span class="transcript-text">Applying these findings to instructional design is where the real value emerges.</span>
+          </div>
+          <div class="transcript-item" data-time="960">
+            <span class="ts">16:00</span>
+            <span class="transcript-text">We can now build targeted simulations that mirror real-world decision demands.</span>
+          </div>
+          <div class="transcript-item" data-time="1080">
+            <span class="ts">18:00</span>
+            <span class="transcript-text">To summarize: CTA bridges the gap between expert intuition and structured curriculum.</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /video-panel -->
+
+    <!-- RIGHT: Lecture Notes -->
+    <div class="notes-panel" id="notesPanel">
+      <div class="notes-header">
+        <span class="notes-title">Lecture Notes</span>
+        <span class="autopause-badge"><span class="autopause-dot"></span>Auto-pause Off</span>
+      </div>
+      <div class="notes-body">
+        <p class="note-summary">The lecturer emphasizes the importance of decomposing tasks for cognitive clarity.</p>
+        <div class="note-quote">
+          <p>"When we perform a cognitive task analysis, we first identify the core competencies required..."</p>
+        </div>
+        <div class="note-slide">
+          <div class="slide-icon">🖼</div>
+          <div class="slide-label">image</div>
+          <div class="slide-label">Inserted Slide @ 04:12</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-layout -->
+
+  <!-- Bottom Bar -->
+  <div class="bottom-bar">
+    <div class="autopause-control">
+      <span>Auto-pause while typing</span>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="autopause">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <button class="export-btn">Export Notes</button>
+  </div>
+
+</div>
+
+<script>
+  const TOTAL = 18 * 60 + 45;
+  let currentSec = Math.floor(TOTAL * 0.30);
+  let isPlaying = false;
+  let isDragging = false;
+  let ticker = null;
+  let transcriptVisible = true;
+  let notesVisible = true;
+
+  const progressTrack   = document.getElementById('progressTrack');
+  const progressFill    = document.getElementById('progressFill');
+  const progressThumb   = document.getElementById('progressThumb');
+  const timeDisplay     = document.getElementById('timeDisplay');
+  const ctrlPlay        = document.getElementById('ctrlPlay');
+  const bigPlayBtn      = document.getElementById('bigPlayBtn');
+  const transcriptBtn   = document.getElementById('transcriptBtn');
+  const notesBtn        = document.getElementById('notesBtn');
+  const fullscreenBtn   = document.getElementById('fullscreenBtn');
+  const fsIcon          = document.getElementById('fsIcon');
+  const transcriptPanel = document.getElementById('transcriptPanel');
+  const notesPanel      = document.getElementById('notesPanel');
+  const mainLayout      = document.getElementById('mainLayout');
+  const appShell        = document.getElementById('appShell');
+  const transcriptList  = document.getElementById('transcriptList');
+  const transcriptItems = document.querySelectorAll('.transcript-item');
+
+  const fmt = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+
+  function updateUI() {
+    const pct = (currentSec / TOTAL) * 100;
+    progressFill.style.width = pct + '%';
+    progressThumb.style.left = pct + '%';
+    timeDisplay.textContent = `${fmt(currentSec)} / ${fmt(TOTAL)}`;
+    // Sync active transcript item
+    let active = null;
+    transcriptItems.forEach(item => {
+      item.classList.remove('active');
+      if (parseInt(item.dataset.time) <= currentSec) active = item;
+    });
+    if (active) {
+      active.classList.add('active');
+      // Scroll active item into view within the transcript list
+      const listRect = transcriptList.getBoundingClientRect();
+      const itemRect = active.getBoundingClientRect();
+      if (itemRect.bottom > listRect.bottom || itemRect.top < listRect.top) {
+        active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }
+
+  function setPlaying(state) {
+    isPlaying = state;
+    clearInterval(ticker);
+    if (state) {
+      ctrlPlay.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+      ticker = setInterval(() => {
+        if (currentSec < TOTAL) { currentSec++; updateUI(); }
+        else setPlaying(false);
+      }, 1000);
+    } else {
+      ctrlPlay.innerHTML = `<svg class="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>`;
+    }
+  }
+
+  function seekFromEvent(e) {
+    const rect = progressTrack.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    currentSec = Math.round(pct * TOTAL);
+    updateUI();
+  }
+
+  // Progress bar: click + drag
+  progressTrack.addEventListener('click', seekFromEvent);
+  progressTrack.addEventListener('mousedown', e => {
+    isDragging = true;
+    seekFromEvent(e);
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', stopDrag);
+  });
+  function onDrag(e) { if (isDragging) seekFromEvent(e); }
+  function stopDrag() {
+    isDragging = false;
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', stopDrag);
+  }
+
+  // Play / Pause
+  ctrlPlay.addEventListener('click', () => setPlaying(!isPlaying));
+  bigPlayBtn.addEventListener('click', () => setPlaying(!isPlaying));
+
+  // Transcript toggle
+  transcriptBtn.addEventListener('click', () => {
+    transcriptVisible = !transcriptVisible;
+    transcriptPanel.classList.toggle('collapsed', !transcriptVisible);
+    transcriptBtn.classList.toggle('active', transcriptVisible);
+    transcriptBtn.setAttribute('data-tip', transcriptVisible ? 'Hide Transcript' : 'Show Transcript');
+  });
+
+  // Notes toggle
+  notesBtn.addEventListener('click', () => {
+    notesVisible = !notesVisible;
+    notesPanel.classList.toggle('collapsed', !notesVisible);
+    mainLayout.classList.toggle('notes-hidden', !notesVisible);
+    notesBtn.classList.toggle('active', notesVisible);
+    notesBtn.setAttribute('data-tip', notesVisible ? 'Hide Notes' : 'Show Notes');
+  });
+
+  // Transcript item seek
+  transcriptItems.forEach(item => {
+    item.addEventListener('click', () => {
+      currentSec = parseInt(item.dataset.time);
+      updateUI();
+    });
+  });
+
+  // Fullscreen
+  fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      appShell.requestFullscreen && appShell.requestFullscreen();
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    fsIcon.innerHTML = isFs
+      ? `<polyline points="4,14 4,20 10,20"/><polyline points="20,10 20,4 14,4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>`
+      : `<polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
+    fullscreenBtn.setAttribute('data-tip', isFs ? 'Exit Fullscreen' : 'Fullscreen');
+  });
+
+  // Init
+  updateUI();
+</script>
+</body>
+</html>
