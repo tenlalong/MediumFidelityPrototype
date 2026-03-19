@@ -312,7 +312,29 @@
   .autopause-badge { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
   .autopause-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
 
-  .notes-body { flex: 1; padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  .notes-body {
+    flex: 1; padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 14px;
+    overflow-y: auto;
+    max-height: 340px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+  }
+  .notes-body::-webkit-scrollbar { width: 4px; }
+  .notes-body::-webkit-scrollbar-track { background: transparent; }
+  .notes-body::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+  .notes-body::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  .note-section-label {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: -4px;
+  }
   .note-summary { font-size: 12.5px; font-weight: 600; color: var(--text-primary); line-height: 1.5; }
 
   .note-quote {
@@ -524,18 +546,51 @@
     <div class="notes-panel" id="notesPanel">
       <div class="notes-header">
         <span class="notes-title">Lecture Notes</span>
-        <span class="autopause-badge"><span class="autopause-dot"></span>Auto-pause Off</span>
+        <span class="autopause-badge"><span class="autopause-dot" id="apDot"></span><span id="apLabel">Auto-pause On</span></span>
       </div>
       <div class="notes-body">
+
+        <div class="note-section-label">00:05 — Introduction</div>
         <p class="note-summary">The lecturer emphasizes the importance of decomposing tasks for cognitive clarity.</p>
+
+        <div class="note-section-label">04:12 — Core Concepts</div>
         <div class="note-quote">
           <p>"When we perform a cognitive task analysis, we first identify the core competencies required..."</p>
         </div>
         <div class="note-slide">
           <div class="slide-icon">🖼</div>
-          <div class="slide-label">image</div>
           <div class="slide-label">Inserted Slide @ 04:12</div>
         </div>
+
+        <div class="note-section-label">06:00 — Mental Models</div>
+        <p class="note-summary">Each sub-task maps to a distinct mental model. Experts rely on pattern recognition rather than step-by-step reasoning.</p>
+        <div class="note-quote">
+          <p>"The key difference between novices and experts lies in how they chunk information..."</p>
+        </div>
+
+        <div class="note-section-label">08:45 — Decomposition Framework</div>
+        <p class="note-summary">The decomposition framework breaks expert performance into discrete, teachable units that can be assessed independently.</p>
+        <div class="note-slide">
+          <div class="slide-icon">🖼</div>
+          <div class="slide-label">Inserted Slide @ 08:45</div>
+        </div>
+
+        <div class="note-section-label">10:34 — Critical Decision Method</div>
+        <p class="note-summary">CDM uses structured retrospective interviews to surface non-obvious decision points that experts often take for granted.</p>
+        <div class="note-quote">
+          <p>"Experts rarely notice what they know — CDM makes the invisible visible..."</p>
+        </div>
+
+        <div class="note-section-label">14:07 — Instructional Design</div>
+        <p class="note-summary">CTA findings directly inform curriculum design — from scenario selection to assessment criteria and feedback loops.</p>
+        <div class="note-slide">
+          <div class="slide-icon">🖼</div>
+          <div class="slide-label">Inserted Slide @ 14:07</div>
+        </div>
+
+        <div class="note-section-label">18:00 — Summary</div>
+        <p class="note-summary">CTA bridges the gap between expert intuition and structured curriculum, enabling more effective and targeted training programs.</p>
+
       </div>
     </div>
 
@@ -546,7 +601,7 @@
     <div class="autopause-control">
       <span>Auto-pause while typing</span>
       <label class="toggle-wrap">
-        <input type="checkbox" id="autopause">
+        <input type="checkbox" id="autopause" checked>
         <span class="toggle-slider"></span>
       </label>
     </div>
@@ -686,6 +741,18 @@
       : `<polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
     fullscreenBtn.setAttribute('data-tip', isFs ? 'Exit Fullscreen' : 'Fullscreen');
   });
+
+  // Auto-pause toggle syncs badge
+  const apToggle = document.getElementById('autopause');
+  const apLabel  = document.getElementById('apLabel');
+  const apDot    = document.getElementById('apDot');
+  function syncAP() {
+    const on = apToggle.checked;
+    apLabel.textContent = on ? 'Auto-pause On' : 'Auto-pause Off';
+    apDot.style.background = on ? 'var(--accent-blue)' : 'var(--text-muted)';
+  }
+  apToggle.addEventListener('change', syncAP);
+  syncAP();
 
   // Init
   updateUI();
