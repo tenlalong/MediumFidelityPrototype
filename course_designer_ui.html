@@ -362,6 +362,142 @@
   .note-slide .slide-label { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
   .note-slide .slide-time { font-size: 10px; color: var(--accent-blue); font-family: 'IBM Plex Mono', monospace; }
 
+  /* ── Notes Editor ── */
+  .notes-editor {
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    flex-shrink: 0;
+  }
+
+  .editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 7px 12px 6px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .editor-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .editor-toolbar-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-light);
+    margin: 0 5px;
+    flex-shrink: 0;
+  }
+
+  .tb-btn {
+    width: 26px; height: 26px;
+    border: none; background: transparent;
+    color: var(--text-secondary);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 12px; font-weight: 700;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: background 0.13s, color 0.13s;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .tb-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .tb-btn.active { background: rgba(91,141,238,0.15); color: var(--accent-blue); }
+
+  /* Tooltip for toolbar */
+  .tb-btn::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%; transform: translateX(-50%);
+    background: #111420;
+    color: var(--text-primary);
+    font-size: 10px; font-weight: 400;
+    font-family: 'IBM Plex Sans', sans-serif;
+    white-space: nowrap;
+    padding: 3px 7px; border-radius: 4px;
+    border: 1px solid var(--border-light);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.13s;
+    z-index: 20;
+  }
+  .tb-btn:hover::after { opacity: 1; }
+
+  .tb-label-btn {
+    height: 26px;
+    padding: 0 10px;
+    border: none; background: transparent;
+    color: var(--text-secondary);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 11px; font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.04em;
+    transition: background 0.13s, color 0.13s;
+    white-space: nowrap;
+  }
+  .tb-label-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  .editor-add-btn {
+    margin-left: auto;
+    height: 26px; padding: 0 13px;
+    background: var(--accent-blue); color: #fff;
+    border: none; border-radius: 5px;
+    font-size: 11.5px; font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .editor-add-btn:hover { background: var(--accent-blue-light); transform: translateY(-1px); }
+
+  .editor-area {
+    min-height: 80px;
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text-primary);
+    line-height: 1.6;
+    outline: none;
+    caret-color: var(--accent-blue);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+  }
+  .editor-area::-webkit-scrollbar { width: 4px; }
+  .editor-area::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+  .editor-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  /* Styles applied inside editor */
+  .editor-area ul, .editor-area ol {
+    padding-left: 20px;
+  }
+  .editor-area blockquote {
+    border-left: 3px solid var(--quote-border);
+    padding-left: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 4px 0;
+  }
+  .editor-area h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 2px 0;
+  }
+
   /* ── Bottom Bar ── */
   .bottom-bar {
     display: flex; align-items: center; justify-content: space-between;
@@ -395,6 +531,79 @@
     cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s;
   }
   .export-btn:hover { background: var(--bg-hover); border-color: var(--accent-blue); transform: translateY(-1px); }
+
+  /* ── Context Menu ── */
+  .context-menu {
+    position: fixed;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 5px;
+    z-index: 1000;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    opacity: 0;
+    transform: scale(0.94);
+    transform-origin: top left;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    pointer-events: none;
+    min-width: 180px;
+  }
+  .context-menu.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: all;
+  }
+  .context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 13px;
+    border-radius: 5px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .context-menu-item:hover {
+    background: rgba(91,141,238,0.15);
+    color: var(--accent-blue-light);
+  }
+  .context-menu-item svg { flex-shrink: 0; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--bg-card);
+    border: 1px solid var(--accent-blue);
+    color: var(--text-primary);
+    font-size: 12.5px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    padding: 10px 18px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
@@ -592,9 +801,56 @@
         <p class="note-summary">CTA bridges the gap between expert intuition and structured curriculum, enabling more effective and targeted training programs.</p>
 
       </div>
-    </div>
 
-  </div><!-- /main-layout -->
+      <!-- Mini Text Editor -->
+      <div class="notes-editor">
+        <div class="editor-toolbar">
+          <!-- Text style -->
+          <div class="editor-toolbar-group">
+            <button class="tb-btn" data-cmd="bold" data-tip="Bold"><b>B</b></button>
+            <button class="tb-btn" data-cmd="italic" data-tip="Italic"><i>I</i></button>
+            <button class="tb-btn" data-cmd="underline" data-tip="Underline"><u>U</u></button>
+          </div>
+          <div class="editor-toolbar-divider"></div>
+          <!-- Lists -->
+          <div class="editor-toolbar-group">
+            <button class="tb-btn" data-cmd="insertUnorderedList" data-tip="Bullet List">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button class="tb-btn" data-cmd="insertOrderedList" data-tip="Numbered List">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4" stroke="currentColor"/><path d="M4 10h2" stroke="currentColor"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" stroke="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="editor-toolbar-divider"></div>
+          <!-- Block formats -->
+          <div class="editor-toolbar-group">
+            <button class="tb-btn" data-cmd="blockquote" data-tip="Blockquote">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zm12 0c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+            </button>
+            <button class="tb-btn" data-cmd="heading" data-tip="Heading">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 12h16M4 6v12M20 6v12"/></svg>
+            </button>
+          </div>
+          <div class="editor-toolbar-divider"></div>
+          <!-- Clear -->
+          <div class="editor-toolbar-group">
+            <button class="tb-btn" data-cmd="removeFormat" data-tip="Clear Formatting">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/><line x1="3" y1="21" x2="21" y2="3" stroke="currentColor"/></svg>
+            </button>
+          </div>
+
+          <button class="editor-add-btn" id="editorAddBtn">+ Add Note</button>
+        </div>
+
+        <div
+          class="editor-area"
+          id="editorArea"
+          contenteditable="true"
+          data-placeholder="Type a note... (use toolbar to format)"
+        ></div>
+      </div>
+
+    </div>
 
   <!-- Bottom Bar -->
   <div class="bottom-bar">
@@ -608,6 +864,25 @@
     <button class="export-btn">Export Notes</button>
   </div>
 
+</div>
+
+<!-- Context Menu -->
+<div class="context-menu" id="contextMenu">
+  <div class="context-menu-item" id="addToNotesBtn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14,2 14,8 20,8"/>
+      <line x1="12" y1="18" x2="12" y2="12"/>
+      <line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+    Add to Lecture Notes
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-dot"></span>
+  <span id="toastMsg">Added to Lecture Notes</span>
 </div>
 
 <script>
@@ -753,6 +1028,191 @@
   }
   apToggle.addEventListener('change', syncAP);
   syncAP();
+
+  // ── Mini Text Editor ──────────────────────────────────
+  const editorArea   = document.getElementById('editorArea');
+  const editorAddBtn = document.getElementById('editorAddBtn');
+  const tbBtns       = document.querySelectorAll('.tb-btn[data-cmd]');
+
+  // Toolbar button actions
+  tbBtns.forEach(btn => {
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault(); // keep focus in editor
+      const cmd = btn.dataset.cmd;
+      if (cmd === 'blockquote') {
+        document.execCommand('formatBlock', false, 'blockquote');
+      } else if (cmd === 'heading') {
+        document.execCommand('formatBlock', false, 'h3');
+      } else {
+        document.execCommand(cmd, false, null);
+      }
+      editorArea.focus();
+      updateToolbarState();
+    });
+  });
+
+  // Highlight active toolbar states (bold/italic/underline)
+  function updateToolbarState() {
+    ['bold','italic','underline','insertUnorderedList','insertOrderedList'].forEach(cmd => {
+      const btn = document.querySelector(`.tb-btn[data-cmd="${cmd}"]`);
+      if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+    });
+  }
+  editorArea.addEventListener('keyup', updateToolbarState);
+  editorArea.addEventListener('mouseup', updateToolbarState);
+
+  // "Add Note" — pushes editor content into notes body as a new block
+  editorAddBtn.addEventListener('click', () => {
+    const html = editorArea.innerHTML.trim();
+    if (!html || html === '<br>') return;
+
+    const notesBody = document.querySelector('.notes-body');
+    const ts = fmt(currentSec);
+
+    // Section label
+    const label = document.createElement('div');
+    label.className = 'note-section-label';
+    label.textContent = `${ts} — Custom Note`;
+
+    // Note block with the editor HTML
+    const block = document.createElement('div');
+    block.className = 'note-summary';
+    block.style.fontWeight = '400';
+    block.style.fontSize = '13px';
+    block.innerHTML = html;
+
+    // Fade-in animation
+    [label, block].forEach(el => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.3s ease';
+    });
+
+    notesBody.appendChild(label);
+    notesBody.appendChild(block);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      label.style.opacity = '1';
+      block.style.opacity = '1';
+    }));
+
+    notesBody.scrollTo({ top: notesBody.scrollHeight, behavior: 'smooth' });
+
+    // Clear editor
+    editorArea.innerHTML = '';
+    showToast(`Note added at ${ts}`);
+
+    // Open notes panel if hidden
+    if (!notesVisible) {
+      notesVisible = true;
+      notesPanel.classList.remove('collapsed');
+      mainLayout.classList.remove('notes-hidden');
+      notesBtn.classList.add('active');
+    }
+  });
+
+  // Ctrl/Cmd+Enter also submits
+  editorArea.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      editorAddBtn.click();
+    }
+  });
+  const contextMenu   = document.getElementById('contextMenu');
+  const addToNotesBtn = document.getElementById('addToNotesBtn');
+  const toast         = document.getElementById('toast');
+  const toastMsg      = document.getElementById('toastMsg');
+  let toastTimer      = null;
+  let targetItem      = null;
+
+  function showContextMenu(e, item) {
+    e.preventDefault();
+    targetItem = item;
+
+    // Position near cursor, flip if near viewport edge
+    const menuW = 200, menuH = 46;
+    let x = e.clientX + 4;
+    let y = e.clientY + 4;
+    if (x + menuW > window.innerWidth)  x = e.clientX - menuW - 4;
+    if (y + menuH > window.innerHeight) y = e.clientY - menuH - 4;
+
+    contextMenu.style.left = x + 'px';
+    contextMenu.style.top  = y + 'px';
+    contextMenu.classList.add('visible');
+  }
+
+  function hideContextMenu() {
+    contextMenu.classList.remove('visible');
+    targetItem = null;
+  }
+
+  function showToast(msg) {
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+
+  // Right-click on transcript items
+  transcriptItems.forEach(item => {
+    item.addEventListener('contextmenu', e => showContextMenu(e, item));
+  });
+
+  // "Add to Lecture Notes" action
+  addToNotesBtn.addEventListener('click', () => {
+    if (!targetItem) return;
+    const ts   = targetItem.querySelector('.ts').textContent.trim();
+    const text = targetItem.querySelector('.transcript-text').textContent.trim();
+
+    const notesBody = document.querySelector('.notes-body');
+
+    // Build new note block
+    const label = document.createElement('div');
+    label.className = 'note-section-label';
+    label.textContent = `${ts} — Added from Transcript`;
+
+    const summary = document.createElement('p');
+    summary.className = 'note-summary';
+    summary.textContent = text;
+
+    // Highlight animation
+    label.style.opacity = '0';
+    summary.style.opacity = '0';
+    label.style.transition = 'opacity 0.3s ease';
+    summary.style.transition = 'opacity 0.3s ease';
+
+    notesBody.appendChild(label);
+    notesBody.appendChild(summary);
+
+    // Fade in
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        label.style.opacity = '1';
+        summary.style.opacity = '1';
+      });
+    });
+
+    // Scroll notes to bottom
+    notesBody.scrollTo({ top: notesBody.scrollHeight, behavior: 'smooth' });
+
+    // If notes panel is hidden, open it
+    if (!notesVisible) {
+      notesVisible = true;
+      notesPanel.classList.remove('collapsed');
+      mainLayout.classList.remove('notes-hidden');
+      notesBtn.classList.add('active');
+    }
+
+    showToast(`Added "${ts}" to Lecture Notes`);
+    hideContextMenu();
+  });
+
+  // Close on outside click or Escape
+  document.addEventListener('click', e => {
+    if (!contextMenu.contains(e.target)) hideContextMenu();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') hideContextMenu();
+  });
 
   // Init
   updateUI();
