@@ -633,7 +633,7 @@
         <div class="play-btn" id="bigPlayBtn">
           <svg width="20" height="20" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21" fill="var(--accent-blue)"/></svg>
         </div>
-        <button class="insert-btn">+ Insert Slide</button>
+        <button class="insert-btn" id="insertSlideBtn">+ Insert Slide</button>
       </div>
 
       <!-- Video Controls Bar -->
@@ -1028,6 +1028,52 @@
   }
   apToggle.addEventListener('change', syncAP);
   syncAP();
+
+  // ── Insert Slide ──────────────────────────────────────
+  const insertSlideBtn = document.getElementById('insertSlideBtn');
+  insertSlideBtn.addEventListener('click', () => {
+    const ts = fmt(currentSec);
+    const notesBody = document.querySelector('.notes-body');
+
+    // Section label
+    const label = document.createElement('div');
+    label.className = 'note-section-label';
+    label.textContent = `${ts} — Inserted Slide`;
+
+    // Slide placeholder block
+    const slide = document.createElement('div');
+    slide.className = 'note-slide';
+    slide.innerHTML = `
+      <div class="slide-icon">🖼</div>
+      <div class="slide-label">Slide captured @ ${ts}</div>
+    `;
+
+    // Fade-in
+    [label, slide].forEach(el => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.3s ease';
+    });
+
+    notesBody.appendChild(label);
+    notesBody.appendChild(slide);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      label.style.opacity = '1';
+      slide.style.opacity = '1';
+    }));
+
+    notesBody.scrollTo({ top: notesBody.scrollHeight, behavior: 'smooth' });
+
+    // Open notes panel if hidden
+    if (!notesVisible) {
+      notesVisible = true;
+      notesPanel.classList.remove('collapsed');
+      mainLayout.classList.remove('notes-hidden');
+      notesBtn.classList.add('active');
+    }
+
+    showToast(`Slide inserted at ${ts}`);
+  });
 
   // ── Mini Text Editor ──────────────────────────────────
   const editorArea   = document.getElementById('editorArea');
